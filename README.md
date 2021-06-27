@@ -12,4 +12,7 @@ General Process:
 - use normalized points and camera transforms to triagulate the corresponding 3D points
 - display points in 3D scatter plot
 
+
+![2d points](data/points2D.png)
+
 ![alt text](data/3D_plot.png)
