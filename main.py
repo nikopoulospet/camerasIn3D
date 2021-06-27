@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -9,7 +11,7 @@ import processor
 import features
 
 # Download images from http://www.robots.ox.ac.uk/~vgg/data/mview/
-
+matplotlib.use("TkAgg")
 
 def dino():
     # Dino
@@ -26,7 +28,8 @@ def dino():
     ax[1].autoscale_view('tight')
     ax[1].imshow(cv2.cvtColor(img2, cv2.COLOR_BGR2RGB))
     ax[1].plot(points2[0], points2[1], 'r.')
-    fig.show()
+    plt.show()
+    print(matplotlib.backends.backend)
 
     height, width, ch = img1.shape
     intrinsic = np.array([  # for dino
@@ -38,7 +41,6 @@ def dino():
 
 
 points1, points2, intrinsic = dino()
-
 # Calculate essential matrix with 2d points.
 # Result will be up to a scale
 # First, normalize points
@@ -47,9 +49,21 @@ points2n = np.dot(np.linalg.inv(intrinsic), points2)
 
 #TODO
 # calculate essential matrix
-
+E = structure.compute_essential_normalized(points1n,points2n)
 
 #print essential matrix
-
+print(E)
 
 #display of the cameras in 3D space
+m1= np.hstack((np.identity(3),np.zeros((3,1))))
+m2 = structure.compute_P_from_essential(E)
+pnts3D = structure.linear_triangulation(points1n,points2n,m1,m2[1])
+pnts3D = processor.hom2cart(pnts3D)
+x = pnts3D[0]
+y = pnts3D[1]
+z = pnts3D[2]
+
+fig = plt.figure()
+ax = plt.axes(projection='3d')
+ax.scatter3D(x,y,z)
+plt.show()
