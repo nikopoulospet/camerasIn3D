@@ -13,8 +13,8 @@ import features
 
 def dino():
     # Dino
-    img1 = cv2.imread('testsets/dinos/viff.003.ppm')
-    img2 = cv2.imread('testsets/dinos/viff.001.ppm')
+    img1 = cv2.imread('data/viff.003.ppm')
+    img2 = cv2.imread('data/viff.001.ppm')
     pts1, pts2 = features.find_correspondence_points(img1, img2)
     points1 = processor.cart2hom(pts1)
     points2 = processor.cart2hom(pts2)
@@ -52,4 +52,4 @@ points2n = np.dot(np.linalg.inv(intrinsic), points2)
 #print essential matrix
 
 
-#display of the cameras in 3D space 
+#display of the cameras in 3D space
