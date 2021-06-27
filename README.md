@@ -11,3 +11,5 @@ General Process:
   - pose two is computed from the essental matrix
 - use normalized points and camera transforms to triagulate the corresponding 3D points
 - display points in 3D scatter plot
+
+![alt text](data/3D_plot.png)
