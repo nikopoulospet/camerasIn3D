@@ -55,7 +55,17 @@ essential matrix as:
 [t]x is the matrix representation of the cross product with t.
 
 ###### Solving with points
-
+In this example we use the list of normalized points x and x' to compute the
+essential matrix. This is done in three steps:
+- preprocessing the image coordinates
+  - we scale and translate each point such that the centriod of the points are
+      at the origin, and such that the average distance to the origin is equal
+      to sqrt(2)
+- computing E with the preprocessed coordinates
+  - Using the **Eight point algorithm** the matrix is computed
+  - The eight point algorithm computes the least square solution for the
+      Essental matrix
+- reversing the preprocessing of the coordinates
 
 #### Method of computing pose two camera matrix from essential matrix
 
