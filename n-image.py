@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import cv2
+import math
 
 from camera import Camera
 import structure
@@ -50,8 +51,32 @@ def compute_essental(path1, path2):
     print(E)
     return points1n, points2n, E
 
+def calc_parameters_camera2(points1n, points2n, P1, P2s):
+    #P2s is the potental camera matrices for cam2 given we are at camera 1
+    indx = -1
 
+    for i, P2 in enumerate(P2s):
+        #find the correct camera parameters
+        d1 = structure.reconstruct_one_point(
+            points1n[:,0], points2n[:,0], P1, P2)
 
+        # Convert P2 from camera to world view
+        P2_homogenous = np.linalg.inv(np.vstack([P2, [0,0,0,1]]))
+        d2 = np.dot(P2_homogenous[:3, :4], d1)
+
+        if d1[2] > 0 and d2[2] > 0:
+            indx = i
+
+    return indx
+
+def filter_points(x,y,z):
+    xnew, ynew, znew = [], [], []
+    for i in range(len(x)):
+        if math.sqrt((x[i]**2)+(y[i]**2)+(z[i]**2)) <= 1.0:
+            xnew.append(x[i])
+            ynew.append(y[i])
+            znew.append(z[i])
+    return xnew, ynew, znew
 
 E = []
 P = []
@@ -60,31 +85,44 @@ X = []
 Y = []
 Z = []
 
-for i in range(1,5):
-    ii = i+1
-    if(ii >= 4):
-        ii = 1
+for i in range(0,9):
+    ii = i+2
+    if(i > 9):
+        istr = '0'+str(i)
+    else:
+        istr = '00'+str(i)
 
-    path1 = 'data/viff.00'+str(i)+'.ppm'
-    path2 = 'data/viff.00'+str(ii)+'.ppm'
+    if(ii > 9):
+        iistr = '0'+str(ii)
+    else:
+        iistr = '00'+str(ii)
+
+    path1 = 'data/viff.'+istr+'.ppm'
+    path2 = 'data/viff.'+iistr+'.ppm'
 
     print(path1,path2)
 
     points1n, points2n, e = compute_essental(path1,path2)
     E.append(e)
-    P.append(structure.compute_P_from_essential(e))
-
     m1 = np.hstack((np.identity(3),np.zeros((3,1))))
-    pnts3D = structure.linear_triangulation(points1n,points2n,m1,P[i-1][1])
-    pnts3D = processor.hom2cart(pnts3D)
+    m2s = structure.compute_P_from_essential(e)
+    # given we are at camera 1 calc params for camera 2
+    # the following returns 4 possible camera matrices
+    indx = calc_parameters_camera2(points1n, points2n, m1, m2s)
+    if(indx == -1):
+        print("invalid index on transform {}:{}".format(i,ii))
+        continue
 
-    print(pnts3D.shape)
+    m2 = np.linalg.inv(np.vstack([m2s[indx],[0,0,0,1]]))[:3,:4]
+    print(m2s[indx],m2)
+    pnts3D = structure.linear_triangulation(points1n,points2n,m1,m2)
 
     for i in range(len(pnts3D[0])):
         X.append(pnts3D[0][i])
         Y.append(pnts3D[1][i])
         Z.append(pnts3D[2][i])
 
+X, Y, Z = filter_points(X,Y,Z)
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
